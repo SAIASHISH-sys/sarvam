@@ -7,8 +7,15 @@ const LABEL_W_PX = 208 // must stay in sync with the task label column below
  * Lightweight SVG-free Gantt: month header, phase dividers, duration bars
  * with progress fill. Horizontally scrollable for long schedules.
  */
-export default function GanttChart({ tasks }) {
-  if (tasks.length === 0) return null
+export default function GanttChart({ tasks: rawTasks }) {
+  if (rawTasks.length === 0) return null
+
+  // Dates may arrive as ISO strings from the API — normalise once.
+  const tasks = rawTasks.map((task) => ({
+    ...task,
+    start: new Date(task.start),
+    end: new Date(task.end),
+  }))
 
   const rangeStart = tasks.reduce((min, t) => (t.start < min ? t.start : min), tasks[0].start)
   const rangeEnd = tasks.reduce((max, t) => (t.end > max ? t.end : max), tasks[0].end)

@@ -19,7 +19,7 @@ const PARAMETER_ROWS = [
 ]
 
 export default function OverviewTab() {
-  const project = useProjectContext()
+  const { project } = useProjectContext()
   const { complianceSummary } = project
 
   return (

@@ -6,8 +6,13 @@ import { formatDate } from '../../utils/format.js'
 import { scheduleDurationDays } from '../../services/projectFactory.js'
 
 export default function ScheduleTab() {
-  const project = useProjectContext()
-  const tasks = project.wbs
+  const { project } = useProjectContext()
+  // API tasks carry ISO date strings; normalise to Date once, here.
+  const tasks = project.wbs.map((task) => ({
+    ...task,
+    start: new Date(task.start),
+    end: new Date(task.end),
+  }))
   const starts = tasks.map((t) => t.start.getTime())
   const ends = tasks.map((t) => t.end.getTime())
 

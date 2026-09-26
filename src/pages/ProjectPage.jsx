@@ -18,21 +18,27 @@ const TABS = [
   { segment: 'compliance', label: 'Compliance' },
   { segment: 'design', label: 'Design' },
   { segment: 'schedule', label: 'Schedule' },
+  { segment: 'voice', label: 'Voice' },
 ]
 
 export default function ProjectPage() {
   const { projectId } = useParams()
-  const [project, setProject] = useState(undefined) // undefined = loading, null = not found
+  const [project, setProject] = useState(undefined) // undefined = loading
+  const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
     let active = true
     getProject(projectId)
       .then((data) => active && setProject(data))
-      .catch(() => active && setProject(null))
+      .catch((error) => active && setLoadError(error.message))
     return () => {
       active = false
     }
   }, [projectId])
+
+  if (loadError) {
+    return <p className="text-sm text-red-600">{loadError}</p>
+  }
 
   if (project === undefined) {
     return <p className="text-sm text-slate-500">Loading…</p>
@@ -52,6 +58,7 @@ export default function ProjectPage() {
 
 function ProjectWorkspace({ project, onProjectChange }) {
   const [publishOpen, setPublishOpen] = useState(false)
+  const status = STATUS_META[project.status] ?? STATUS_META.draft
   const { projectId } = useParams()
 
   async function handlePublish() {
@@ -98,7 +105,7 @@ function ProjectWorkspace({ project, onProjectChange }) {
         </nav>
       </div>
 
-      <Outlet context={project} />
+      <Outlet context={{ project, onProjectChange }} />
 
       {publishOpen && (
         <PublishAgentModal project={project} onClose={() => setPublishOpen(false)} onConfirm={handlePublish} />
@@ -107,5 +114,5 @@ function ProjectWorkspace({ project, onProjectChange }) {
   )
 }
 
-/** Convenience re-export so tabs can grab the project without prop drilling. */
+/** Convenience re-export so tabs can grab the workspace context. */
 export { useOutletContext as useProjectContext }

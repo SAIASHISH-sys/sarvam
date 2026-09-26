@@ -15,9 +15,7 @@ export default function Dashboard() {
   const { projects, error } = useProjects()
 
   if (error) {
-    return (
-      <p className="text-sm text-red-600">Could not load projects. Please refresh and try again.</p>
-    )
+    return <p className="text-sm text-red-600">{error.message}</p>
   }
 
   if (projects === null) {

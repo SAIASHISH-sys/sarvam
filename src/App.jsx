@@ -7,6 +7,7 @@ import OverviewTab from './pages/project/OverviewTab.jsx'
 import ComplianceTab from './pages/project/ComplianceTab.jsx'
 import DesignTab from './pages/project/DesignTab.jsx'
 import ScheduleTab from './pages/project/ScheduleTab.jsx'
+import VoiceTab from './pages/project/VoiceTab.jsx'
 import AgentPage from './pages/AgentPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="compliance" element={<ComplianceTab />} />
           <Route path="design" element={<DesignTab />} />
           <Route path="schedule" element={<ScheduleTab />} />
+          <Route path="voice" element={<VoiceTab />} />
         </Route>
         <Route path="agent" element={<AgentPage />} />
         <Route path="*" element={<NotFoundPage />} />

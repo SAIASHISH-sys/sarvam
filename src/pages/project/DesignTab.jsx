@@ -2,7 +2,7 @@ import Card from '../../components/ui/Card.jsx'
 import { useProjectContext } from '../ProjectPage.jsx'
 
 export default function DesignTab() {
-  const project = useProjectContext()
+  const { project } = useProjectContext()
   const { design } = project
 
   return (

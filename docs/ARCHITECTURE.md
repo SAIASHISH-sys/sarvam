@@ -6,36 +6,58 @@ Two-stage system for norm-aware building design and site execution.
 
 Web application where a construction manager defines a project, checks it
 against a catalogue of Indian building norms, generates a preliminary
-structural design, and produces a WBS + schedule.
+structural design, produces a WBS + schedule — and edits the whole plan by
+speaking, conversationally.
+
+### Backend (`backend/`)
+
+```
+app/
+  main.py            FastAPI app, CORS, routers
+  config.py          env settings (Sarvam key, models)
+  schemas.py        pydantic models — snake_case in, camelCase on the wire
+  engines.py         compliance + design engines (authoritative port)
+  wbs.py             WBS template + schedule math
+  project_factory.py params → full project record
+  store.py           in-memory store (Postgres replaces it behind the same interface)
+  sarvam_client.py   Saaras STT · Bulbul TTS · Sarvam-105B chat
+  voice_sessions.py  dialogue state, LLM intent parsing, validated edits
+  routes/            projects CRUD · voice session + turns
+```
+
+### Frontend (`src/`)
 
 ```
 src/
   components/   UI building blocks, grouped by domain (layout, ui, projects,
-                compliance, schedule, agent)
+                compliance, schedule, agent, voice)
   pages/        Route-level views; one folder concept per route
-  services/     The application's real logic: compliance engine, design
-                generator, project factory, project service (data access)
-  data/         Static reference data: norms catalogue, WBS template,
-                sample projects, agent call log
-  utils/        Pure helpers: formatting, date/schedule math
+  services/    API seam (api.js, projectService, voiceService). The UI never
+               builds URLs or parses errors itself.
+  hooks/       useProjects, useVoiceSession (conversation + recorder state)
+  data/        Static reference data for the wizard's instant local preview
+               (the backend engines are authoritative for stored projects)
+  utils/       Pure helpers: formatting, date/schedule math
 ```
 
 ### Data flow
 
 ```
-Wizard params ──▶ projectFactory ──▶ Project record
-                      │
-                      ├─▶ complianceEngine (params × normsCatalog → checks)
-                      ├─▶ designEngine     (params → system + members)
-                      └─▶ wbsTemplate       (params → dated task list)
+Wizard / VoiceTab ──REST──▶ FastAPI
+                               │
+                               ├─▶ engines.py        (params × norms catalogue → checks)
+                               ├─▶ project_factory  (checks + design + WBS → project)
+                               └─▶ store            (today: memory · later: Postgres)
 
-UI ⇄ projectService ⇄ (today: in-memory store · later: REST backend)
+Voice turn:  audio ─▶ Saaras STT ─▶ Sarvam-105B (JSON edits, validated against
+            the schema whitelist) ─▶ rebuild ─▶ Bulbul TTS ─▶ spoken reply
 ```
 
-`projectService` is the single seam between UI and data. The backend will
-replace its method bodies with `fetch()` calls; signatures and every consumer
-stay untouched. Engines and utils are pure functions — no React, no network —
-so they can be lifted into the backend unchanged and unit-tested there.
+`projectService`/`voiceService` on the frontend and `ProjectStore` on the
+backend are the two seams. The frontend keeps ports of the engines only for
+the wizard's instant preview; the backend is authoritative for everything
+stored. Engine logic lives in pure functions on both sides and is written to
+stay in sync.
 
 ## Stage 2 — Site Voice Agent (external)
 
